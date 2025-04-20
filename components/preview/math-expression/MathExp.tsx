@@ -42,7 +42,7 @@ export default function MathExp({ exp }: { exp: string }) {
           javaScriptEnabled={true}
           style={{ ...styles.webViewContainer, height: containerHeight }}
           source={{
-            uri: "https://mcq-hub.co.in/mathexp-in-web/",
+            uri: "https://sd-codebase.github.io/",
           }}
           injectedJavaScriptObject={{
             mathExp: exp,

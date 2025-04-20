@@ -20,37 +20,55 @@ export default function PreviewContainer() {
     setQuestion(null);
     setStatus("loading");
 
-    fetch("https://be.mcq-hub.co.in/api/questions/review-in-app")
-      .then((response) => response.json())
-      .then((json) => {
-        setQuestion(json?.[0] || null);
-        setStatus("ready");
-      })
-      .catch((error) => {
-        console.error(error);
-        setStatus("error");
-      });
+    try {
+      const { data, error } = await supabase
+        .from("questions")
+        .select("*")
+        .eq("review_in_app", true)
+        .limit(1)
+        .single();
+
+      if (error) throw error;
+
+      const que = {
+        ...data,
+        srNo: data.sr_no,
+        hasIntegerAnswer: data.has_integer_answer,
+        isMarkedForReview: data.is_marked_for_review,
+        reviewInApp: data.review_in_app,
+        isActive: data.is_active,
+        topicId: data.topic_id,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at,
+      };
+      setQuestion(que || null);
+      setStatus("ready");
+    } catch (error) {
+      console.error(error);
+      setStatus("error");
+    }
   };
 
-  const markReviewDone = () => {
+  const markReviewDone = async () => {
     if (!question?.id) {
       alert("No question");
       return;
     }
-    fetch(`https://be.mcq-hub.co.in/api/questions/${question.id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ reviewInApp: false }),
-    })
-      .then((response) => response.json())
-      .then((json) => {
-        alert(`Success : Q ${question?.srNo} Marked as review done!`);
-      })
-      .catch((error) => {
-        alert(`Error: Q ${question?.srNo} could not marked as review done!`);
-      });
+
+    try {
+      const { error } = await supabase
+        .from("questions")
+        .update({ verified_in_app: true, review_in_app: false })
+        .eq("id", question.id);
+
+      if (error) throw error;
+
+      alert(`Success : Q ${question?.srNo} Marked as review done!`);
+      fetchQuestionForPreview(); // Fetch next question after marking current as done
+    } catch (error) {
+      console.error(error);
+      alert(`Error: Q ${question?.srNo} could not be marked as review done!`);
+    }
   };
 
   return (
