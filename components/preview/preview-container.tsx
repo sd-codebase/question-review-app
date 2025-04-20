@@ -28,7 +28,11 @@ export default function PreviewContainer() {
         .limit(1)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        setStatus("error");
+        setQuestion(null);
+        return;
+      }
 
       const que = {
         ...data,
@@ -41,7 +45,7 @@ export default function PreviewContainer() {
         createdAt: data.created_at,
         updatedAt: data.updated_at,
       };
-      setQuestion(que || null);
+      setQuestion(que);
       setStatus("ready");
     } catch (error) {
       console.error(error);
@@ -61,7 +65,10 @@ export default function PreviewContainer() {
         .update({ verified_in_app: true, review_in_app: false })
         .eq("id", question.id);
 
-      if (error) throw error;
+      if (error) {
+        alert(`Error: Q ${question?.srNo} could not be marked as review done!`);
+        return;
+      }
 
       alert(`Success : Q ${question?.srNo} Marked as review done!`);
       fetchQuestionForPreview(); // Fetch next question after marking current as done
